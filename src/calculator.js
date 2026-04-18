@@ -7,6 +7,9 @@
  * - subtraction (-, subtract)
  * - multiplication (*, x, multiply)
  * - division (/, ÷, divide)
+ * - modulo (%, mod, modulo)
+ * - exponentiation (^, **, pow, power)
+ * - square root (sqrt, squareRoot)
  */
 
 const OPERATION_MAP = {
@@ -20,11 +23,24 @@ const OPERATION_MAP = {
   "/": "divide",
   "÷": "divide",
   divide: "divide",
+  "%": "modulo",
+  mod: "modulo",
+  modulo: "modulo",
+  "^": "power",
+  "**": "power",
+  pow: "power",
+  power: "power",
+  sqrt: "squareRoot",
+  squareroot: "squareRoot",
 };
 
 function printUsage() {
-  console.log("Usage: node src/calculator.js <operation> <number1> <number2>");
-  console.log("Operations: add(+), subtract(-), multiply(* or x), divide(/ or ÷)");
+  console.log("Usage:");
+  console.log("  node src/calculator.js <operation> <number1> <number2>");
+  console.log("  node src/calculator.js sqrt <number>");
+  console.log(
+    "Operations: add(+), subtract(-), multiply(* or x), divide(/ or ÷), modulo(%), power(^ or **), squareRoot(sqrt)"
+  );
 }
 
 function parseNumber(value, label) {
@@ -49,15 +65,41 @@ function calculate(operation, left, right) {
         throw new Error("Cannot divide by zero.");
       }
       return left / right;
+    case "modulo":
+      return modulo(left, right);
+    case "power":
+      return power(left, right);
+    case "squareRoot":
+      return squareRoot(left);
     default:
       throw new Error(`Unsupported operation: ${operation}`);
   }
 }
 
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error("Cannot modulo by zero.");
+  }
+
+  return a % b;
+}
+
+function power(base, exponent) {
+  return base ** exponent;
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error("Cannot take square root of a negative number.");
+  }
+
+  return Math.sqrt(n);
+}
+
 function main() {
   const [, , operationInput, leftInput, rightInput] = process.argv;
 
-  if (!operationInput || leftInput === undefined || rightInput === undefined) {
+  if (!operationInput || leftInput === undefined) {
     printUsage();
     process.exitCode = 1;
     return;
@@ -73,7 +115,19 @@ function main() {
 
   try {
     const left = parseNumber(leftInput, "number1");
-    const right = parseNumber(rightInput, "number2");
+    const isUnaryOperation = normalizedOperation === "squareRoot";
+    let right;
+
+    if (!isUnaryOperation) {
+      if (rightInput === undefined) {
+        printUsage();
+        process.exitCode = 1;
+        return;
+      }
+
+      right = parseNumber(rightInput, "number2");
+    }
+
     const result = calculate(normalizedOperation, left, right);
 
     console.log(result);
@@ -91,5 +145,8 @@ module.exports = {
   OPERATION_MAP,
   parseNumber,
   calculate,
+  modulo,
+  power,
+  squareRoot,
   main,
 };
